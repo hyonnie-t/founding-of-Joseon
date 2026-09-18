@@ -171,6 +171,10 @@
 
   /* 생각 넓히기(선택 글쓰기) */
   .essay-prompt{font-size:.98rem; line-height:1.75; margin-bottom:14px;}
+  .essay-image-wrap{margin-bottom:16px;}
+  .essay-image{
+    width:100%; display:block; border-radius:var(--radius-sm); border:1px solid var(--line);
+  }
   .essay-choices{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
   .choice-btn{
     min-height:56px; font-size:.95rem; font-weight:700; border-radius:var(--radius-sm);
@@ -283,6 +287,10 @@
         왕권 중심 정치와 재상(신하) 중심 정치, 유교가 말하는 좋은 정치(백성을 위한 정치)를 실현하기에
         어느 쪽이 더 낫다고 생각해?<br>내 입장을 적고, 116쪽 내용에서 근거를 찾아서 써보자.
       </p>
+
+      <div class="essay-image-wrap" id="essayImageWrap">
+        <img class="essay-image" id="essayImage" src="images/116page.jpg" alt="교과서 116쪽 참고 자료">
+      </div>
 
       <button type="button" class="hint-toggle" id="btnHintToggle">💡 막막하면 힌트 보기</button>
       <div class="hint-box" id="hintBox">
@@ -553,6 +561,12 @@
   /* ── 4단계: 생각 넓히기(선택 글쓰기) ── */
   function initEssayView(){
     $('btnToEssay').addEventListener('click', function(){ showView('essayView'); });
+
+    // 116쪽 참고 이미지(images/116page.jpg)는 효니가 나중에 업로드할 예정이라,
+    // 아직 파일이 없어도 깨진 이미지 아이콘 대신 조용히 숨긴다.
+    $('essayImage').addEventListener('error', function(){
+      $('essayImageWrap').style.display = 'none';
+    });
 
     $('btnHintToggle').addEventListener('click', function(){
       $('hintBox').classList.toggle('open');

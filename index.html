@@ -289,7 +289,7 @@
       </p>
 
       <div class="essay-image-wrap" id="essayImageWrap">
-        <img class="essay-image" id="essayImage" src="images/116page.jpg" alt="교과서 116쪽 참고 자료">
+        <img class="essay-image" id="essayImage" src="images/116page.png" alt="교과서 116쪽 참고 자료">
       </div>
 
       <button type="button" class="hint-toggle" id="btnHintToggle">💡 막막하면 힌트 보기</button>
@@ -562,7 +562,7 @@
   function initEssayView(){
     $('btnToEssay').addEventListener('click', function(){ showView('essayView'); });
 
-    // 116쪽 참고 이미지(images/116page.jpg)는 효니가 나중에 업로드할 예정이라,
+    // 116쪽 참고 이미지(images/116page.png)는 효니가 나중에 업로드할 예정이라,
     // 아직 파일이 없어도 깨진 이미지 아이콘 대신 조용히 숨긴다.
     $('essayImage').addEventListener('error', function(){
       $('essayImageWrap').style.display = 'none';

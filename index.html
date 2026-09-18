@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>왕권 vs 신권 — 카드 분류</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<style>
+  :root{
+    --paper:#F6F3EB;
+    --ink:#23262C;
+    --ink-soft:#5A5F6A;
+    --indigo:#2E4A7A;
+    --indigo-deep:#1F3457;
+    --seal:#B03A2E;
+    --jade:#3E7C59;
+    --jade-bg:#E4EEE8;
+    --seal-bg:#FBEAE7;
+    --line:#D9D3C4;
+    --card:#FFFFFF;
+    --cream:#FBF6EA;
+    --radius-xs:8px;
+    --radius-sm:10px;
+    --radius:14px;
+    --shadow:0 2px 10px rgba(35,38,44,.08);
+    --font-display:'Gowun Batang', serif;
+    --font-body:'Pretendard', -apple-system, sans-serif;
+    --tap-min:44px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html{font-size:16px;}
+  body{
+    font-family:var(--font-body);
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    line-height:1.6;
+    padding:20px 14px 60px;
+  }
+  .wrap{max-width:640px; margin:0 auto;}
+  .eyebrow{
+    font-size:.78rem; letter-spacing:.3em; color:var(--indigo);
+    font-weight:700; text-align:center; margin-bottom:6px;
+  }
+  h1{
+    font-family:var(--font-display); font-size:1.5rem; text-align:center;
+    margin-bottom:4px; color:var(--ink);
+  }
+  .subtitle{text-align:center; color:var(--ink-soft); font-size:.92rem; margin-bottom:22px;}
+  .card-panel{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:22px 20px; margin-bottom:16px;
+  }
+  label{display:block; font-size:.9rem; font-weight:600; margin-bottom:6px; color:var(--ink);}
+  input[type=text]{
+    width:100%; min-height:var(--tap-min); font-size:1.05rem; padding:10px 14px;
+    border:1.5px solid var(--line); border-radius:var(--radius-sm); background:var(--cream);
+    color:var(--ink); margin-bottom:16px; font-family:var(--font-body);
+  }
+  input[type=text]:focus{outline:none; border-color:var(--indigo);}
+  .btn{
+    width:100%; min-height:var(--tap-min); font-size:1.05rem; font-weight:700;
+    background:var(--indigo); color:#fff; border:none; border-radius:var(--radius-sm);
+    cursor:pointer; transition:background .15s;
+  }
+  .btn:hover{background:var(--indigo-deep);}
+  .btn:disabled{background:#B7BEC9; cursor:not-allowed;}
+  .btn-outline{
+    background:var(--card); color:var(--indigo); border:1.5px solid var(--indigo);
+  }
+  .btn-outline:hover{background:var(--indigo); color:#fff;}
+  .error-msg{color:var(--seal); font-size:.88rem; margin-top:-8px; margin-bottom:14px; display:none;}
+  .hint-note{
+    background:var(--cream); border-left:4px solid var(--indigo); border-radius:var(--radius-xs);
+    padding:10px 12px; font-size:.82rem; color:var(--ink-soft); margin-bottom:16px;
+  }
+  .preview-badge{
+    display:inline-block; background:var(--seal-bg); color:var(--seal); font-size:.74rem;
+    font-weight:700; padding:3px 10px; border-radius:999px; margin-bottom:10px;
+  }
+
+  /* 갈등 요약 */
+  .story-box{
+    font-family:var(--font-display); font-size:1rem; line-height:1.85; color:var(--ink);
+    background:var(--cream); border-radius:var(--radius-xs); padding:16px 16px; margin-bottom:18px;
+  }
+  .step-eyebrow{
+    font-size:.72rem; letter-spacing:.2em; color:var(--ink-soft); font-weight:700;
+    margin-bottom:8px; text-transform:uppercase;
+  }
+
+  /* 카드 분류 */
+  .zone-title{font-weight:700; font-size:.95rem; margin-bottom:8px; text-align:center;}
+  .zones{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
+  .zone{
+    min-height:120px; border:2px dashed var(--line); border-radius:var(--radius-sm);
+    padding:8px; background:var(--panel-alt, #FBFAF4);
+  }
+  .zone.zone-king{border-color:rgba(46,74,122,.4);}
+  .zone.zone-subject{border-color:rgba(176,58,46,.4);}
+  .tray{
+    min-height:64px; border:2px dashed var(--line); border-radius:var(--radius-sm);
+    padding:8px; margin-bottom:14px; background:#F0EDE3;
+    display:flex; flex-wrap:wrap; gap:8px;
+  }
+  .tray-label{font-size:.78rem; color:var(--ink-soft); width:100%; margin-bottom:2px;}
+  .card-item{
+    background:var(--card); border:1.5px solid var(--line); border-radius:var(--radius-xs);
+    padding:10px 10px 8px; margin-bottom:8px; cursor:grab;
+  }
+  .card-item:last-child{margin-bottom:0;}
+  .card-item.sortable-ghost{opacity:.4;}
+  .card-item .card-name{font-weight:700; font-size:.98rem; margin-bottom:4px;}
+  .card-item .card-text{font-size:.84rem; color:var(--ink-soft); line-height:1.55; margin-bottom:8px;}
+  .card-move-row{display:flex; gap:6px;}
+  .card-move-btn{
+    flex:1; min-height:36px; font-size:.78rem; font-weight:600; border-radius:var(--radius-xs);
+    border:1.5px solid var(--line); background:var(--card); color:var(--ink-soft); cursor:pointer;
+  }
+  .card-move-btn.active{border-color:var(--indigo); background:var(--indigo); color:#fff;}
+  .card-move-btn.active.subject{border-color:var(--seal); background:var(--seal);}
+  .progress-note{text-align:center; font-size:.82rem; color:var(--ink-soft); margin-bottom:14px;}
+
+  /* 결과 화면 */
+  .score-banner{
+    text-align:center; padding:16px; border-radius:var(--radius); margin-bottom:18px;
+    background:var(--jade-bg); color:#254A37; font-weight:700; font-size:1.1rem;
+  }
+  .result-card{
+    background:var(--card); border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    padding:14px 14px; margin-bottom:10px;
+  }
+  .result-card.correct{border-color:var(--jade); background:var(--jade-bg);}
+  .result-card.wrong{border-color:var(--seal); background:var(--seal-bg);}
+  .result-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;}
+  .result-name{font-weight:700; font-size:1rem;}
+  .result-mark{font-size:.85rem; font-weight:700;}
+  .result-mark.ok{color:var(--jade);}
+  .result-mark.no{color:var(--seal);}
+  .result-placed{font-size:.82rem; color:var(--ink-soft); margin-bottom:6px;}
+  .result-explain{font-size:.86rem; color:var(--ink); background:rgba(176,58,46,.08); border-radius:var(--radius-xs); padding:8px 10px; margin-top:6px;}
+  .summary-box{
+    font-family:var(--font-display); font-size:.95rem; line-height:1.8; color:var(--ink);
+    background:var(--cream); border-left:4px solid var(--indigo); border-radius:var(--radius-xs);
+    padding:16px; margin-top:18px;
+  }
+  .submitting-hint{text-align:center; font-size:.8rem; color:var(--ink-soft); margin-top:8px;}
+  .view{display:none;}
+  .view.active{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">2차시 · 조선의 건국과 유교 통치 원리</div>
+  <h1>왕권 vs 신권</h1>
+  <p class="subtitle">태종·세종·세조·성종, 누가 왕에게 힘을 모으고 누가 신하와 나눴을까?</p>
+
+  <!-- 1단계: 학번/이름 확인 -->
+  <div id="loginView" class="view active">
+    <div class="card-panel">
+      <div id="previewBadge" class="preview-badge" style="display:none;">👀 미리보기 모드 (기록 저장 안 됨)</div>
+      <div class="step-eyebrow">시작하기 전에</div>
+      <label for="inSid">학번 (5자리)</label>
+      <input type="text" id="inSid" inputmode="numeric" maxlength="5" placeholder="예: 30512">
+      <label for="inName">이름</label>
+      <input type="text" id="inName" placeholder="이름을 입력하세요">
+      <div id="loginError" class="error-msg">학번(5자리)과 이름을 모두 입력해줘.</div>
+      <button class="btn" id="btnStart">확인하고 시작하기</button>
+    </div>
+  </div>
+
+  <!-- 2단계: 갈등 요약 읽기 -->
+  <div id="storyView" class="view">
+    <div class="card-panel">
+      <div class="step-eyebrow">읽기 · 정도전과 이방원</div>
+      <div class="story-box">
+        정도전은 신하(재상)가 중심이 되어 나라를 이끄는 정치를 꿈꿨다. 이방원은 조선 건국에 가장 큰 공을 세웠지만
+        개국공신에도 못 오르고, 막내 이복동생 방석이 세자가 되는 걸 지켜봐야 했다. 정도전이 왕자들의 사병까지
+        없애려 하자 이방원은 1차 왕자의 난(1398)을 일으켜 정도전과 세자를 제거했다. 이후 2차 왕자의 난(1400)까지
+        거쳐 태종으로 즉위한다.
+      </div>
+      <button class="btn" id="btnToSort">넘어가기 → 카드 분류하기</button>
+    </div>
+  </div>
+
+  <!-- 2단계: 카드 분류 -->
+  <div id="sortView" class="view">
+    <div class="card-panel">
+      <div class="step-eyebrow">태종·세종·세조·성종의 정치를 분류해보자</div>
+      <div class="hint-note">💡 카드를 드래그하거나, 카드 아래 버튼을 눌러 옮길 수 있어. 정답은 분류가 다 끝난 뒤 확인 버튼을 눌러야 볼 수 있어.</div>
+
+      <div class="tray-label">🗂 아직 분류 안 한 카드</div>
+      <div class="tray" id="tray"></div>
+
+      <div class="zones">
+        <div>
+          <div class="zone-title">👑 국왕중심</div>
+          <div class="zone zone-king" id="zoneKing"></div>
+        </div>
+        <div>
+          <div class="zone-title">📜 신권강화</div>
+          <div class="zone zone-subject" id="zoneSubject"></div>
+        </div>
+      </div>
+
+      <div class="progress-note" id="progressNote">0 / 4장 분류 완료</div>
+      <button class="btn" id="btnSubmit" disabled>확인하기</button>
+      <div class="submitting-hint" id="submittingHint" style="display:none;">기록을 저장하는 중...</div>
+    </div>
+  </div>
+
+  <!-- 3단계: 결과 -->
+  <div id="resultView" class="view">
+    <div class="card-panel">
+      <div class="score-banner" id="scoreBanner"></div>
+      <div id="resultList"></div>
+      <div class="summary-box">
+        태종-세조와 세종-성종, 둘 다 유교 정치를 한다고 자처했어. '유교식으로 잘 다스린다'는 게 왕이 힘을 쥐는 것도
+        되고, 신하와 나누는 것도 되니까 — 그 안에서 계속 줄다리기가 있었던 거야.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var CONFIG = {
+    SHEET_WEBAPP_URL: "https://script.google.com/macros/s/AKfycbyXSjCfWY_HiZFqW_OBR-FQDoIfF1z_STqyKWUI31MacHeY3u7hbirFSFDvW-5yuUHaJQ/exec",
+    GAME_NAME: "2차시_왕권신권_카드분류"
+  };
+
+  var CARDS = [
+    {
+      id:'taejong', name:'태종',
+      text:'공신과 왕자들의 사병을 없애 군사권을 장악했다. 호패법을 실시해 인구와 세금·군역 자료를 확보했다.',
+      answer:'king',
+      wrongNote:'사병을 없애고 군사권을 장악한 건 왕이 힘을 모은 행동이야.'
+    },
+    {
+      id:'sejong', name:'세종',
+      text:'태종이 축소한 의정부의 권한을 다시 강화했다. 경연을 열어 신하들과 정책을 토론했다.',
+      answer:'subject',
+      wrongNote:'의정부 권한을 다시 키워준 건 신하 쪽에 힘을 실어준 거야.'
+    },
+    {
+      id:'sejo', name:'세조',
+      text:'집현전을 폐지하고 경연을 열지 않았다. 의정부의 권한을 약화시켰다.',
+      answer:'king',
+      wrongNote:'집현전 폐지, 경연 중단은 신하들의 발언권을 줄인 거야.'
+    },
+    {
+      id:'seongjong', name:'성종',
+      text:'홍문관을 설치해 경연을 다시 열었다. 의정부의 권한을 강화하고 경국대전을 완성했다.',
+      answer:'subject',
+      wrongNote:'홍문관 설치, 경연 재개, 의정부 강화는 신하 쪽 힘을 다시 키운 거야.'
+    }
+  ];
+
+  var ZONE_LABEL = { king:'국왕중심', subject:'신권강화', tray:'미분류' };
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  var qs = new URLSearchParams(location.search);
+  var PREVIEW = qs.get('preview') === '1';
+  var SESSION = { sid:'', name:'' };
+  var placement = {}; // cardId -> 'tray' | 'king' | 'subject'
+  var sortableInstances = [];
+
+  function showView(id){
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+    $(id).classList.add('active');
+  }
+
+  /* ── 재시도 포함 fetch (Apps Script 재배포 직후 일시적 오류 흡수, 기본 3회·700ms 간격) ── */
+  function fetchJsonRetry_(url, options, tries, delayMs){
+    tries = tries || 3;
+    delayMs = delayMs || 700;
+    return fetch(url, options).then(function(res){ return res.json(); }).catch(function(err){
+      if (tries <= 1) return Promise.reject(err);
+      return new Promise(function(resolve){ setTimeout(resolve, delayMs); })
+        .then(function(){ return fetchJsonRetry_(url, options, tries - 1, delayMs); });
+    });
+  }
+
+  /* ── 1단계: 로그인 확인 ── */
+  function initLoginView(){
+    var sid = qs.get('sid') || '';
+    var name = qs.get('name') || '';
+    $('inSid').value = sid;
+    $('inName').value = name;
+    if (PREVIEW) $('previewBadge').style.display = 'inline-block';
+
+    $('btnStart').addEventListener('click', function(){
+      var sidVal = $('inSid').value.trim();
+      var nameVal = $('inName').value.trim();
+      if (!/^\d{5}$/.test(sidVal) || !nameVal){
+        $('loginError').style.display = 'block';
+        return;
+      }
+      $('loginError').style.display = 'none';
+      SESSION.sid = sidVal;
+      SESSION.name = nameVal;
+      showView('storyView');
+    });
+  }
+
+  /* ── 2단계: 갈등 요약 → 카드 분류 ── */
+  function initStoryView(){
+    $('btnToSort').addEventListener('click', function(){
+      showView('sortView');
+    });
+  }
+
+  function cardEl(card){
+    var el = document.createElement('div');
+    el.className = 'card-item';
+    el.dataset.id = card.id;
+    el.innerHTML =
+      '<div class="card-name">' + card.name + '</div>' +
+      '<div class="card-text">' + card.text + '</div>' +
+      '<div class="card-move-row">' +
+        '<button type="button" class="card-move-btn king" data-zone="king">👑 국왕중심</button>' +
+        '<button type="button" class="card-move-btn subject" data-zone="subject">📜 신권강화</button>' +
+      '</div>';
+    el.querySelectorAll('.card-move-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        moveCard(card.id, btn.dataset.zone);
+      });
+    });
+    return el;
+  }
+
+  function moveCard(cardId, zone){
+    placement[cardId] = zone;
+    renderZones();
+  }
+
+  function zoneContainerFor(zone){
+    if (zone === 'king') return $('zoneKing');
+    if (zone === 'subject') return $('zoneSubject');
+    return $('tray');
+  }
+
+  function renderZones(){
+    ['tray','zoneKing','zoneSubject'].forEach(function(id){ $(id).innerHTML = ''; });
+    CARDS.forEach(function(card){
+      var zone = placement[card.id] || 'tray';
+      var el = cardEl(card);
+      el.querySelectorAll('.card-move-btn').forEach(function(btn){
+        if (btn.dataset.zone === zone) btn.classList.add('active');
+      });
+      zoneContainerFor(zone).appendChild(el);
+    });
+    var doneCount = CARDS.filter(function(c){ return placement[c.id] && placement[c.id] !== 'tray'; }).length;
+    $('progressNote').textContent = doneCount + ' / ' + CARDS.length + '장 분류 완료';
+    $('btnSubmit').disabled = doneCount < CARDS.length;
+  }
+
+  function initSortable(containerId, zoneName){
+    // CDN 차단 등으로 SortableJS 로드에 실패해도 카드 이동 버튼만으로 분류가
+    // 가능해야 하므로, 라이브러리가 없으면 드래그 기능만 조용히 건너뛴다.
+    if (typeof Sortable === 'undefined') return;
+    var el = $(containerId);
+    var inst = new Sortable(el, {
+      group: 'cardsort',
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      onAdd: function(evt){
+        var cardId = evt.item.dataset.id;
+        placement[cardId] = zoneName;
+        renderZones();
+      },
+      onSort: function(){ /* 같은 영역 내 순서 변경은 분류 결과에 영향 없음 */ }
+    });
+    sortableInstances.push(inst);
+  }
+
+  function initSortView(){
+    CARDS.forEach(function(card){ placement[card.id] = 'tray'; });
+    initSortable('tray', 'tray');
+    initSortable('zoneKing', 'king');
+    initSortable('zoneSubject', 'subject');
+    renderZones();
+
+    $('btnSubmit').addEventListener('click', submitResult);
+  }
+
+  /* ── 제출 + 결과 계산 ── */
+  function submitResult(){
+    $('btnSubmit').disabled = true;
+
+    var cardSort = {};
+    var score = 0;
+    CARDS.forEach(function(card){
+      var chosen = placement[card.id];
+      cardSort[card.name] = ZONE_LABEL[chosen] || '';
+      if (chosen === card.answer) score++;
+    });
+
+    var payload = {
+      studentId: SESSION.sid,
+      studentName: SESSION.name,
+      gameName: CONFIG.GAME_NAME,
+      choiceSummary: '카드분류 정답 ' + score + '/' + CARDS.length,
+      diffSummary: '',
+      reflection: '',
+      choicesJson: JSON.stringify({ cardSort: cardSort, cardSortScore: score })
+    };
+
+    if (PREVIEW){
+      renderResult(score);
+      return;
+    }
+
+    $('submittingHint').style.display = 'block';
+    fetchJsonRetry_(CONFIG.SHEET_WEBAPP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    }).then(function(){
+      $('submittingHint').style.display = 'none';
+      renderResult(score);
+    }).catch(function(){
+      $('submittingHint').style.display = 'none';
+      $('btnSubmit').disabled = false;
+      alert('기록 저장에 실패했어. 인터넷 연결을 확인하고 다시 눌러줘.');
+    });
+  }
+
+  function renderResult(score){
+    $('scoreBanner').textContent = '4장 중 ' + score + '장 정답!';
+    var listEl = $('resultList');
+    listEl.innerHTML = '';
+    CARDS.forEach(function(card){
+      var chosen = placement[card.id];
+      var isCorrect = chosen === card.answer;
+      var box = document.createElement('div');
+      box.className = 'result-card ' + (isCorrect ? 'correct' : 'wrong');
+      box.innerHTML =
+        '<div class="result-head">' +
+          '<span class="result-name">' + card.name + '</span>' +
+          '<span class="result-mark ' + (isCorrect ? 'ok' : 'no') + '">' + (isCorrect ? '✅ 정답' : '❌ 오답') + '</span>' +
+        '</div>' +
+        '<div class="result-placed">내가 고른 답: ' + ZONE_LABEL[chosen] + (isCorrect ? '' : ' (정답: ' + ZONE_LABEL[card.answer] + ')') + '</div>' +
+        (isCorrect ? '' : '<div class="result-explain">' + card.wrongNote + '</div>');
+      listEl.appendChild(box);
+    });
+    showView('resultView');
+  }
+
+  function init(){
+    initLoginView();
+    initStoryView();
+    initSortView();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

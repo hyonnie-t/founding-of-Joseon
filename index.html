@@ -60,22 +60,43 @@
     color:var(--ink); margin-bottom:16px; font-family:var(--font-body);
   }
   input[type=text]:focus{outline:none; border-color:var(--indigo);}
+  textarea{
+    width:100%; min-height:120px; font-size:1rem; padding:12px 14px; line-height:1.6;
+    border:1.5px solid var(--line); border-radius:var(--radius-sm); background:var(--cream);
+    color:var(--ink); font-family:var(--font-body); resize:vertical;
+  }
+  textarea:focus{outline:none; border-color:var(--indigo);}
   .btn{
     width:100%; min-height:var(--tap-min); font-size:1.05rem; font-weight:700;
     background:var(--indigo); color:#fff; border:none; border-radius:var(--radius-sm);
-    cursor:pointer; transition:background .15s;
+    cursor:pointer; transition:background .15s; margin-bottom:10px;
   }
+  .btn:last-child{margin-bottom:0;}
   .btn:hover{background:var(--indigo-deep);}
   .btn:disabled{background:#B7BEC9; cursor:not-allowed;}
   .btn-outline{
     background:var(--card); color:var(--indigo); border:1.5px solid var(--indigo);
   }
   .btn-outline:hover{background:var(--indigo); color:#fff;}
+  .btn-seal{background:var(--seal);}
+  .btn-seal:hover{background:#8C2E24;}
+  .btn-row{display:flex; gap:10px;}
+  .btn-row .btn{flex:1;}
   .error-msg{color:var(--seal); font-size:.88rem; margin-top:-8px; margin-bottom:14px; display:none;}
+  .error-msg ul{padding-left:18px;}
   .hint-note{
     background:var(--cream); border-left:4px solid var(--indigo); border-radius:var(--radius-xs);
     padding:10px 12px; font-size:.82rem; color:var(--ink-soft); margin-bottom:16px;
   }
+  .hint-toggle{
+    background:none; border:none; color:var(--indigo); font-size:.86rem; font-weight:600;
+    cursor:pointer; padding:6px 0; margin-bottom:8px;
+  }
+  .hint-box{
+    display:none; background:var(--indigo-bg, #F3F5FA); border-radius:var(--radius-xs);
+    padding:12px 14px; font-size:.84rem; color:var(--ink); line-height:1.7; margin-bottom:14px;
+  }
+  .hint-box.open{display:block;}
   .preview-badge{
     display:inline-block; background:var(--seal-bg); color:var(--seal); font-size:.74rem;
     font-weight:700; padding:3px 10px; border-radius:999px; margin-bottom:10px;
@@ -144,9 +165,40 @@
   .summary-box{
     font-family:var(--font-display); font-size:.95rem; line-height:1.8; color:var(--ink);
     background:var(--cream); border-left:4px solid var(--indigo); border-radius:var(--radius-xs);
-    padding:16px; margin-top:18px;
+    padding:16px; margin:18px 0;
   }
   .submitting-hint{text-align:center; font-size:.8rem; color:var(--ink-soft); margin-top:8px;}
+
+  /* 생각 넓히기(선택 글쓰기) */
+  .essay-prompt{font-size:.98rem; line-height:1.75; margin-bottom:14px;}
+  .essay-choices{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
+  .choice-btn{
+    min-height:56px; font-size:.95rem; font-weight:700; border-radius:var(--radius-sm);
+    border:1.5px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;
+  }
+  .choice-btn.active.king{border-color:var(--indigo); background:var(--indigo); color:#fff;}
+  .choice-btn.active.subject{border-color:var(--seal); background:var(--seal); color:#fff;}
+  .cond-list{list-style:none; margin-bottom:14px;}
+  .cond-list li{
+    display:flex; gap:8px; align-items:flex-start; font-size:.86rem; color:var(--ink-soft);
+    padding:5px 0;
+  }
+  .cond-list li .cond-mark{flex:0 0 auto; font-weight:700; color:var(--line);}
+  .cond-list li.done{color:var(--ink);}
+  .cond-list li.done .cond-mark{color:var(--jade);}
+  .char-count{text-align:right; font-size:.78rem; color:var(--ink-soft); margin:6px 0 16px;}
+
+  /* 패들렛 붙여넣기 */
+  .paste-box{
+    background:var(--cream); border:1.5px dashed var(--line); border-radius:var(--radius-sm);
+    padding:14px; font-size:.9rem; line-height:1.6; color:var(--ink); white-space:pre-wrap;
+    margin-bottom:14px;
+  }
+  .copied-note{color:var(--jade); font-size:.85rem; text-align:center; margin-bottom:10px; display:none;}
+  .copied-note.show{display:block;}
+  .done-emoji{font-size:2.4rem; text-align:center; margin-bottom:10px;}
+  .done-text{text-align:center; font-size:1rem; color:var(--ink); margin-bottom:6px;}
+
   .view{display:none;}
   .view.active{display:block;}
 </style>
@@ -207,7 +259,6 @@
 
       <div class="progress-note" id="progressNote">0 / 4장 분류 완료</div>
       <button class="btn" id="btnSubmit" disabled>확인하기</button>
-      <div class="submitting-hint" id="submittingHint" style="display:none;">기록을 저장하는 중...</div>
     </div>
   </div>
 
@@ -220,6 +271,76 @@
         태종-세조와 세종-성종, 둘 다 유교 정치를 한다고 자처했어. '유교식으로 잘 다스린다'는 게 왕이 힘을 쥐는 것도
         되고, 신하와 나누는 것도 되니까 — 그 안에서 계속 줄다리기가 있었던 거야.
       </div>
+      <button class="btn" id="btnToEssay">생각 넓히기 (선택) →</button>
+    </div>
+  </div>
+
+  <!-- 4단계(선택): 생각 넓히기 글쓰기 -->
+  <div id="essayView" class="view">
+    <div class="card-panel">
+      <div class="step-eyebrow">생각 넓히기 · 선택 활동</div>
+      <p class="essay-prompt">
+        왕권 중심 정치와 재상(신하) 중심 정치, 유교가 말하는 좋은 정치(백성을 위한 정치)를 실현하기에
+        어느 쪽이 더 낫다고 생각해?<br>내 입장을 적고, 116쪽 내용에서 근거를 찾아서 써보자.
+      </p>
+
+      <button type="button" class="hint-toggle" id="btnHintToggle">💡 막막하면 힌트 보기</button>
+      <div class="hint-box" id="hintBox">
+        <b>왕권중심을 고른다면</b> — 태종이 사병을 없애고 군사권을 장악한 것, 세조가 집현전을 없애고 경연을
+        안 연 것처럼, 왕에게 힘이 모이면 정책 결정이 빨라진다는 점을 근거로 써볼 수 있어.<br><br>
+        <b>재상중심을 고른다면</b> — 세종이 의정부 권한을 다시 키운 것, 성종이 홍문관을 설치하고 경연을
+        다시 연 것처럼, 신하와 함께 논의하면 왕이 혼자 잘못된 결정을 내릴 위험이 줄어든다는 점을 근거로
+        써볼 수 있어.
+      </div>
+
+      <label>1. 입장을 먼저 골라줘</label>
+      <div class="essay-choices">
+        <button type="button" class="choice-btn king" id="choiceKing" data-choice="king">👑 왕권중심</button>
+        <button type="button" class="choice-btn subject" id="choiceSubject" data-choice="subject">📜 재상중심</button>
+      </div>
+
+      <label for="essayReason">2. 116쪽 왕들의 사례를 근거로 이유를 써줘</label>
+      <textarea id="essayReason" placeholder="예: 세종은 의정부의 권한을 다시 강화하고 경연을 열어 신하들과 논의했기 때문에, 왕이 혼자 판단하는 것보다 재상중심 정치가 백성을 위한 정치에 더 낫다."></textarea>
+      <div class="char-count" id="charCount">0자</div>
+
+      <ul class="cond-list">
+        <li id="cond1"><span class="cond-mark">✓</span><span>왕권중심 / 재상중심 중 하나를 먼저 골랐다</span></li>
+        <li id="cond2"><span class="cond-mark">✓</span><span>116쪽 왕(태종·세종·세조·성종) 중 최소 1명의 사례를 근거로 넣었다</span></li>
+        <li id="cond3"><span class="cond-mark">✓</span><span>"~것 같다" 대신 "~때문에 ~이 더 낫다"로 판단해서 썼다</span></li>
+      </ul>
+
+      <div id="essayError" class="error-msg"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-outline" id="btnSkipEssay">건너뛰기</button>
+        <button class="btn" id="btnSubmitEssay">제출하고 완료하기</button>
+      </div>
+      <div class="submitting-hint" id="essaySubmittingHint" style="display:none;">기록을 저장하는 중...</div>
+    </div>
+  </div>
+
+  <!-- 5단계: 패들렛에 붙여넣기 (글쓰기를 제출했을 때만) -->
+  <div id="padletView" class="view">
+    <div class="card-panel">
+      <div class="step-eyebrow">패들렛에 옮겨 적기</div>
+      <p style="margin-bottom:12px; font-size:.92rem; color:var(--ink-soft);">
+        아래 내용을 복사해서 우리 반 패들렛에 붙여넣어줘.
+      </p>
+      <div class="paste-box" id="pasteBox"></div>
+      <div class="copied-note" id="copiedNote">✅ 복사했어! 이제 패들렛에 붙여넣어줘.</div>
+      <button class="btn" id="btnCopyPaste">📋 복사하기</button>
+      <button class="btn btn-outline" id="btnOpenPadlet">패들렛 열기 →</button>
+      <div id="padletMissing" class="hint-note" style="display:none; margin-top:14px;">
+        이 반의 패들렛 링크를 찾지 못했어. 선생님께 링크를 물어보고 위 내용을 붙여넣어줘.
+      </div>
+    </div>
+  </div>
+
+  <!-- 6단계: 완료 (글쓰기를 건너뛰었을 때) -->
+  <div id="doneView" class="view">
+    <div class="card-panel">
+      <div class="done-emoji">🎉</div>
+      <div class="done-text">오늘 활동 완료! 수고했어.</div>
     </div>
   </div>
 </div>
@@ -261,6 +382,16 @@
   ];
 
   var ZONE_LABEL = { king:'국왕중심', subject:'신권강화', tray:'미분류' };
+  var ESSAY_LABEL = { king:'왕권중심', subject:'재상중심' };
+  var KING_NAMES = ['태종','세종','세조','성종'];
+
+  /* 3학년 5~8반 담당 반 패들렛 (webapp-builder 스킬 표준 링크) */
+  var PADLET_URLS = {
+    5: 'https://padlet.com/dy_sch03/2026-2-3-5-cewq8vec8p3ew2yn',
+    6: 'https://padlet.com/dy_sch03/2026-2-3-6-2xngg3v8pstkvld9',
+    7: 'https://padlet.com/dy_sch03/2026-2-3-7-8ssvnriy75f7xwxs',
+    8: 'https://padlet.com/dy_sch03/2026-2-3-8-gsrz2i3ca863675l'
+  };
 
   var $ = function(id){ return document.getElementById(id); };
 
@@ -269,6 +400,8 @@
   var SESSION = { sid:'', name:'' };
   var placement = {}; // cardId -> 'tray' | 'king' | 'subject'
   var sortableInstances = [];
+  var cardScore = 0;
+  var essayChoice = '';
 
   function showView(id){
     document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
@@ -386,51 +519,16 @@
     initSortable('zoneSubject', 'subject');
     renderZones();
 
-    $('btnSubmit').addEventListener('click', submitResult);
-  }
-
-  /* ── 제출 + 결과 계산 ── */
-  function submitResult(){
-    $('btnSubmit').disabled = true;
-
-    var cardSort = {};
-    var score = 0;
-    CARDS.forEach(function(card){
-      var chosen = placement[card.id];
-      cardSort[card.name] = ZONE_LABEL[chosen] || '';
-      if (chosen === card.answer) score++;
-    });
-
-    var payload = {
-      studentId: SESSION.sid,
-      studentName: SESSION.name,
-      gameName: CONFIG.GAME_NAME,
-      choiceSummary: '카드분류 정답 ' + score + '/' + CARDS.length,
-      diffSummary: '',
-      reflection: '',
-      choicesJson: JSON.stringify({ cardSort: cardSort, cardSortScore: score })
-    };
-
-    if (PREVIEW){
-      renderResult(score);
-      return;
-    }
-
-    $('submittingHint').style.display = 'block';
-    fetchJsonRetry_(CONFIG.SHEET_WEBAPP_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    }).then(function(){
-      $('submittingHint').style.display = 'none';
-      renderResult(score);
-    }).catch(function(){
-      $('submittingHint').style.display = 'none';
-      $('btnSubmit').disabled = false;
-      alert('기록 저장에 실패했어. 인터넷 연결을 확인하고 다시 눌러줘.');
+    $('btnSubmit').addEventListener('click', function(){
+      cardScore = 0;
+      CARDS.forEach(function(card){
+        if (placement[card.id] === card.answer) cardScore++;
+      });
+      renderResult(cardScore);
     });
   }
 
+  /* ── 3단계: 결과 표시 (서버 저장 없이 로컬 계산만) ── */
   function renderResult(score){
     $('scoreBanner').textContent = '4장 중 ' + score + '장 정답!';
     var listEl = $('resultList');
@@ -452,10 +550,184 @@
     showView('resultView');
   }
 
+  /* ── 4단계: 생각 넓히기(선택 글쓰기) ── */
+  function initEssayView(){
+    $('btnToEssay').addEventListener('click', function(){ showView('essayView'); });
+
+    $('btnHintToggle').addEventListener('click', function(){
+      $('hintBox').classList.toggle('open');
+    });
+
+    ['choiceKing','choiceSubject'].forEach(function(id){
+      $(id).addEventListener('click', function(){
+        essayChoice = $(id).dataset.choice;
+        $('choiceKing').classList.toggle('active', essayChoice === 'king');
+        $('choiceSubject').classList.toggle('active', essayChoice === 'subject');
+        updateConditionChecks();
+      });
+    });
+
+    $('essayReason').addEventListener('input', function(){
+      $('charCount').textContent = $('essayReason').value.trim().length + '자';
+      updateConditionChecks();
+    });
+
+    $('btnSkipEssay').addEventListener('click', function(){
+      finalizeSubmit({ essayChoice:'', essayReason:'', essaySkipped:true }, function(){
+        showView('doneView');
+      });
+    });
+
+    $('btnSubmitEssay').addEventListener('click', function(){
+      var issues = essayIssues();
+      if (issues.length){
+        $('essayError').innerHTML = '<ul>' + issues.map(function(m){ return '<li>' + m + '</li>'; }).join('') + '</ul>';
+        $('essayError').style.display = 'block';
+        return;
+      }
+      $('essayError').style.display = 'none';
+      var reason = $('essayReason').value.trim();
+      finalizeSubmit({ essayChoice: essayChoice, essayReason: reason, essaySkipped:false }, function(){
+        renderPadletStep(reason);
+      });
+    });
+  }
+
+  function updateConditionChecks(){
+    var text = $('essayReason').value.trim();
+    var mentionsKing = KING_NAMES.some(function(n){ return text.indexOf(n) !== -1; });
+    var noHedge = text.length > 0 && !/것\s*같다/.test(text);
+    $('cond1').classList.toggle('done', !!essayChoice);
+    $('cond2').classList.toggle('done', mentionsKing);
+    $('cond3').classList.toggle('done', noHedge);
+  }
+
+  function essayIssues(){
+    var issues = [];
+    var text = $('essayReason').value.trim();
+    if (!essayChoice) issues.push('먼저 왕권중심 / 재상중심 중 하나를 선택해줘.');
+    if (text.length < 20) issues.push('이유를 20자 이상 조금 더 자세히 써줘.');
+    if (!KING_NAMES.some(function(n){ return text.indexOf(n) !== -1; })){
+      issues.push('116쪽에 나온 왕(태종·세종·세조·성종) 중 최소 1명의 사례를 근거로 넣어줘.');
+    }
+    if (/것\s*같다/.test(text)){
+      issues.push('"~것 같다" 대신 "~때문에 ~이 더 낫다"처럼 판단해서 써줘.');
+    }
+    return issues;
+  }
+
+  /* ── 최종 제출 (카드분류 + 선택 글쓰기를 한 번에 게임활동_로그 1행으로 기록) ── */
+  function finalizeSubmit(essay, onDone){
+    var cardSort = {};
+    CARDS.forEach(function(card){ cardSort[card.name] = ZONE_LABEL[placement[card.id]] || ''; });
+
+    var choiceSummary = '카드분류 정답 ' + cardScore + '/' + CARDS.length;
+    choiceSummary += essay.essaySkipped ? ' · 글쓰기 생략' : ' · 선택: ' + ESSAY_LABEL[essay.essayChoice];
+
+    var payload = {
+      studentId: SESSION.sid,
+      studentName: SESSION.name,
+      gameName: CONFIG.GAME_NAME,
+      choiceSummary: choiceSummary,
+      diffSummary: '',
+      reflection: essay.essayReason || '',
+      choicesJson: JSON.stringify({
+        cardSort: cardSort,
+        cardSortScore: cardScore,
+        essayChoice: essay.essayChoice || '',
+        essaySkipped: !!essay.essaySkipped
+      })
+    };
+
+    if (PREVIEW){
+      onDone();
+      return;
+    }
+
+    setEssayButtonsDisabled(true);
+    $('essaySubmittingHint').style.display = 'block';
+    fetchJsonRetry_(CONFIG.SHEET_WEBAPP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    }).then(function(){
+      $('essaySubmittingHint').style.display = 'none';
+      setEssayButtonsDisabled(false);
+      onDone();
+    }).catch(function(){
+      $('essaySubmittingHint').style.display = 'none';
+      setEssayButtonsDisabled(false);
+      alert('기록 저장에 실패했어. 인터넷 연결을 확인하고 다시 눌러줘.');
+    });
+  }
+
+  function setEssayButtonsDisabled(disabled){
+    $('btnSkipEssay').disabled = disabled;
+    $('btnSubmitEssay').disabled = disabled;
+  }
+
+  /* ── 5단계: 패들렛 붙여넣기 ── */
+  function renderPadletStep(reason){
+    var pasteText =
+      '[2차시 왕권 vs 신권 — 생각 넓히기]\n' +
+      '이름: ' + SESSION.name + ' (' + SESSION.sid + ')\n' +
+      '선택: ' + ESSAY_LABEL[essayChoice] + '\n' +
+      '이유: ' + reason;
+    $('pasteBox').textContent = pasteText;
+    $('copiedNote').classList.remove('show');
+
+    var ban = banFromSid(SESSION.sid);
+    var url = ban ? PADLET_URLS[ban] : '';
+    $('padletMissing').style.display = url ? 'none' : 'block';
+    $('btnOpenPadlet').style.display = url ? 'block' : 'none';
+
+    $('btnCopyPaste').onclick = function(){
+      copyToClipboard(pasteText).then(function(){
+        $('copiedNote').classList.add('show');
+      }).catch(function(){
+        alert('복사에 실패했어. 위 상자를 길게 눌러 직접 복사해줘.');
+      });
+    };
+    $('btnOpenPadlet').onclick = function(){
+      if (url) window.open(url, '_blank', 'noopener');
+    };
+
+    showView('padletView');
+  }
+
+  function banFromSid(sid){
+    if (!/^\d{5}$/.test(sid)) return null;
+    return parseInt(sid.slice(1, 3), 10);
+  }
+
+  function copyToClipboard(text){
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function(resolve, reject){
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        document.execCommand('copy');
+        resolve();
+      } catch (err){
+        reject(err);
+      } finally {
+        document.body.removeChild(ta);
+      }
+    });
+  }
+
   function init(){
     initLoginView();
     initStoryView();
     initSortView();
+    initEssayView();
   }
 
   init();
